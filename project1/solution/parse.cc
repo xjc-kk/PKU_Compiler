@@ -4,7 +4,8 @@
 #include <cstring>
 #include <iostream>
 #include <stack>
-
+#include <cassert>
+#include <algorithm>
 Type data_type;
 
 string getstr(const char* i, const char* j)
@@ -160,11 +161,12 @@ vector<Stmt> parse_kernel(const char* pt)
 	stack<Expr> id;
 	stack<char> op;
 	ret.resize(0);
-	
+
 	for (const char* i=pt;*i != '\0'; i++)
 	{
 		if (*i == ' ') continue;
 		if (*i == '\n') continue;
+		if (*i == '\r') continue;
 
 		if (isop(*i)) 
 		{
