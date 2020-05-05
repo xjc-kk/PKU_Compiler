@@ -53,10 +53,12 @@ int main()
 		std::cout << "end!\n\n";
 
 	//	part2
-	//	Group kernel = buildIR();
+		Group kernel = IRGenerator(js);
+
+		std::cout << "Generator done!\n\n";
 
 	/*	part3
-	 *	MyPrinter printer;
+	 	MyPrinter printer;
 		std::string code = printer.print(kernel);
 
 		std::cout << code;
@@ -64,6 +66,13 @@ int main()
 
 		std::cout << "Success!\n";
 		*/
+
+		IRPrinter printer;
+		std::string code = printer.print(kernel);
+
+		std::cout << code;
+
+		std::cout << "Success!\n\n";
 	}
 	return 0;
 }

@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <string>
+#include <cassert>
+#include <algorithm>
 #include "IR.h"
 using namespace std;
 using namespace Boost::Internal;
@@ -16,4 +18,9 @@ struct record {
 };
 
 void parse(FILE*, record&);
+<<<<<<< Updated upstream
+=======
+Group IRGenerator(record& js);
+
+>>>>>>> Stashed changes
 #endif

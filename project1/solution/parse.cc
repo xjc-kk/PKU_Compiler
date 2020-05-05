@@ -172,9 +172,14 @@ vector<Stmt> parse_kernel(const char* pt)
 
 	for (const char* i=pt;*i != '\0'; i++)
 	{
+	//	printf("%d %d\n", i-pt, *i);
 		if (*i == ' ') continue;
 		if (*i == '\n') continue;
+<<<<<<< Updated upstream
 		if (*i == '\r') continue;
+=======
+		if (*i == '\r') continue;	// for Windows
+>>>>>>> Stashed changes
 
 		if (isop(*i)) 
 		{
@@ -221,6 +226,7 @@ vector<Stmt> parse_kernel(const char* pt)
 	}
 	return ret;
 }
+
 void parse(FILE* f, record& js)
 {
 	char buf[1000];

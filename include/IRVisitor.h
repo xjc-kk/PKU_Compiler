@@ -26,6 +26,10 @@
 #define BOOST_IRVISITOR_H
 
 #include "IR.h"
+#include <unordered_map>
+#include <utility>
+#include <cassert>
+#include <algorithm>
 
 
 namespace Boost {
@@ -52,6 +56,17 @@ class IRVisitor {
     virtual void visit(Ref<const IfThenElse>);
     virtual void visit(Ref<const Move>);
     virtual void visit(Ref<const Kernel>);
+
+   std::unordered_map<std::string, std::pair<int, int> > index_mp;  // index_name-->index_dom
+   std::vector<std::pair<Expr, int> > needIf;   // <index expressions that need IF check, upper_bound>
+   std::unordered_map<std::string, std::vector<int> > var_dims;  // var_name-->dims
+   std::vector<std::string> indexes;   // all the indexes in their upcoming order
+   std::vector<std::string> left_indexes; // indexes of leftVar
+   bool enterR; // whether comes to righthand of "="
+   bool leftVarUseful;  // whether leftVar appears on the righthand
+   bool leftVarPreSave; // whether leftVar needs preSaving : cases like A[i, j] = A[j, i]
+   std::string leftVarName;
+
  private:
 };
 
