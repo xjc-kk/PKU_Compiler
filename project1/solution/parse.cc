@@ -61,11 +61,14 @@ inline int pri(char c)
 		case '-': return 1;
 		case '*': return 2;
 		case '/': return 2;
+		case '%': return 2;
 		default : assert(1==0);
 	}
 }
 	
 vector<Stmt> ret;
+vector<vector<Expr>> var_list;
+vector<Expr> var_l;
 
 Expr compute(Expr& a, Expr& b, char c)
 {
@@ -74,6 +77,7 @@ Expr compute(Expr& a, Expr& b, char c)
 		case '-' : return Binary::make(data_type, BinaryOpType::Sub, a, b);
 		case '*' : return Binary::make(data_type, BinaryOpType::Mul, a, b);
 		case '/' : return Binary::make(data_type, BinaryOpType::Div, a, b);
+		case '%' : return Binary::make(data_type, BinaryOpType::Mod, a, b);
 		default	 : assert(1==0);
 	}
 }
@@ -97,6 +101,8 @@ void putop(char c, stack<Expr>& id, stack<char>& op)
 		if (oper == '=')
 		{
 			ret.push_back(Move::make(first, second, MoveType::MemToMem));
+			var_list.push_back(var_l);
+			var_l.resize(0);
 			continue;
 		}
 		Expr ret = compute(first, second, oper);
@@ -161,6 +167,8 @@ vector<Stmt> parse_kernel(const char* pt)
 	stack<Expr> id;
 	stack<char> op;
 	ret.resize(0);
+	var_l.resize(0);
+	var_list.resize(0);
 
 	for (const char* i=pt;*i != '\0'; i++)
 	{
@@ -205,8 +213,9 @@ vector<Stmt> parse_kernel(const char* pt)
 			assert(*j == '>');
 			if (*(j+1) == '[')		// get av
 				j = parse_av(j+2, av);
-			id.push(Var::make(data_type, name, av, cv));
-
+			Expr var = Var::make(data_type, name, av, cv);
+			id.push(var);
+			var_l.push_back(var);
 			i = j;
 		}
 	}
@@ -243,6 +252,10 @@ void parse(FILE* f, record& js)
 		if (strcmp(type, "name"		)==0)	js.name = content;
 		if (strcmp(type, "ins"		)==0)	js.in   = parse_id(pt+1);
 		if (strcmp(type, "outs"		)==0)	js.out  = parse_id(pt+1);
-		if (strcmp(type, "kernel"	)==0)	js.vs   = parse_kernel(pt+1);
+		if (strcmp(type, "kernel"	)==0)	
+		{
+			js.vs   = parse_kernel(pt+1);
+			js.var_list = move(var_list);
+		}
 	}
 }

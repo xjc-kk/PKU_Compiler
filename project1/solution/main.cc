@@ -35,12 +35,20 @@ int main()
 
 		std::cout<<js.vs.size()<<endl;
 	
-		for (auto s:js.vs)
+		for (int i=0;i<js.vs.size();i++)
 		{
 			IRPrinter printer;
 	//		auto m = s.as<Move>();
 	//		auto e = m->src.as<Binary>();
-			std::cout <<  printer.print(s)<<std::endl;
+			std::cout <<  printer.print(js.vs[i])<<std::endl;
+			for (auto var : js.var_list[i])
+			{
+				IRPrinter p;
+				std::cout << p.print(var) <<'<';
+				for (auto j : var.as<Var>()->shape)
+					std::cout << j << ' ';
+				std::cout<<'>'<<std::endl;
+			}
 		}
 		std::cout << "end!\n\n";
 
