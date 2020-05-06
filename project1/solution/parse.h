@@ -18,9 +18,7 @@ struct record {
 };
 
 void parse(FILE*, record&);
-<<<<<<< Updated upstream
-=======
+
 Group IRGenerator(record& js);
 
->>>>>>> Stashed changes
 #endif
