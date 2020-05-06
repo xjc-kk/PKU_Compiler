@@ -175,11 +175,7 @@ vector<Stmt> parse_kernel(const char* pt)
 	//	printf("%d %d\n", i-pt, *i);
 		if (*i == ' ') continue;
 		if (*i == '\n') continue;
-<<<<<<< Updated upstream
-		if (*i == '\r') continue;
-=======
 		if (*i == '\r') continue;	// for Windows
->>>>>>> Stashed changes
 
 		if (isop(*i)) 
 		{

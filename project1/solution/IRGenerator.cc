@@ -12,6 +12,13 @@ IRVisitor visitor;
 Type index_type;
 Type dataType;
 
+std::vector<Expr> ins;
+std::vector<Expr> outs;
+std::vector<Expr> left_index;
+std::vector<Expr> right_index;
+std::vector<Expr> all_index;
+vector<Stmt> main_stmt;
+
 void genStmt(Stmt s){
     left_index.clear();
     right_index.clear();
