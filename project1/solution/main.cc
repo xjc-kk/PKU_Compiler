@@ -5,6 +5,7 @@
 #include <cstring>
 #include "parse.h"
 #include "IRPrinter.h"
+#include "MyPrinter.h"
 int main() 
 {
 //	char filehead[100] = "#include \"../run.h\"\n\n";
@@ -12,14 +13,13 @@ int main()
 	char iname[100], oname[100];
 
 	record js;
-//	int i=10;
 	for (int i=1;i<=10;i++)
 	{
 		sprintf(iname, "./cases/case%d.json", i);
 		sprintf(oname, "./kernels/kernel_case%d.cc", i);
 		FILE* fin  = fopen(iname, "r");
 		if (fin == nullptr) continue;
-	//	FILE* fout = fopen(oname, "w");
+		// FILE* fout = fopen(oname, "w");
 		std::cout<<"process :" << iname<<std::endl;
 
 	//	fputs(filehead, fout);
@@ -57,22 +57,27 @@ int main()
 
 		std::cout << "Generator done!\n\n";
 
-	/*	part3
-	 	MyPrinter printer;
-		std::string code = printer.print(kernel);
+	// 	part3
+	 	MyPrinter myprinter;
+		std::string mycode = myprinter.print(kernel);
 
-		std::cout << code;
-		fputs(code, fout);
+		std::cout << mycode;
+		std::ofstream ofile(oname, std::ios::out);
+		std::string head = "#include \"../run.h\"\n\n";
+		ofile << head;
+    	ofile << mycode;
+    	ofile.close();
+		// fputs(mycode, fout);
 
 		std::cout << "Success!\n";
-		*/
+		
 
-		IRPrinter printer;
-		std::string code = printer.print(kernel);
+		// IRPrinter printer;
+		// std::string code = printer.print(kernel);
 
-		std::cout << code;
+		// std::cout << code;
 
-		std::cout << "Success!\n\n";
+		// std::cout << "Success!\n\n";
 	}
 	return 0;
 }

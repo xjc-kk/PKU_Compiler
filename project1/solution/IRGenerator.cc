@@ -41,7 +41,7 @@ void genStmt(Stmt s){
         int end = dom.second;
         //cout << index_name << ": [" << begin << "," << end << ")\n";
 
-        Expr index_dom = Dom::make(index_type, begin, end-begin);
+        Expr index_dom = Dom::make(index_type, begin, end); // extent is actually the end
         Expr index_e = Index::make(index_type, index_name, index_dom, IndexType::Reduce);
         right_index.push_back(index_e);
         all_index.push_back(index_e);
@@ -121,24 +121,46 @@ Group IRGenerator(record& js) {
         genStmt(s);
         // generate loop_nest
     }
+    
+    // for(auto var : visitor.var_dims){
+    //     vector<long unsigned int> v;
+    //     for(auto i : var.second){
+    //         v.push_back(i);
+    //     }
+
+    //     if(find(js.out.begin(), js.out.end(), var.first) != js.out.end()){
+    //         Expr out_e = Var::make(dataType, var.first, {}, v);
+    //         outs.push_back(out_e);
+    //     }
+    //     if(find(js.in.begin(), js.in.end(), var.first) != js.in.end()){
+    //         Expr in_e = Var::make(dataType, var.first, {}, v);
+    //         ins.push_back(in_e);
+    //     }
+    // }
 
     // generate ins & outs
-    for(auto var : visitor.var_dims){
-        vector<long unsigned int> v;
-        for(auto i : var.second){
-            v.push_back(i);
-        }
-
-        if(find(js.out.begin(), js.out.end(), var.first) != js.out.end()){
-            Expr out_e = Var::make(dataType, var.first, {}, v);
-            outs.push_back(out_e);
-        }
-        if(find(js.in.begin(), js.in.end(), var.first) != js.in.end()){
-            Expr in_e = Var::make(dataType, var.first, {}, v);
+    for(auto in_name = js.in.begin(); in_name != js.in.end(); in_name++){
+        auto var = visitor.var_dims.find(*in_name);
+        if(var != visitor.var_dims.end()){
+            vector<long unsigned int> v;
+            for(auto i : var->second){
+                v.push_back(i);
+            }
+            Expr in_e = Var::make(dataType, var->first, {}, v);
             ins.push_back(in_e);
         }
     }
-
+    for(auto out_name = js.out.begin(); out_name != js.out.end(); out_name++){
+        auto var = visitor.var_dims.find(*out_name);
+        if(var != visitor.var_dims.end()){
+            vector<long unsigned int> v;
+            for(auto i : var->second){
+                v.push_back(i);
+            }
+            Expr out_e = Var::make(dataType, var->first, {}, v);
+            outs.push_back(out_e);
+        }
+    }    
     // kernel
     Group kernel = Kernel::make(js.name, ins, outs, main_stmt, KernelType::CPU);
 
