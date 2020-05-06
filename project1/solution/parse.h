@@ -3,8 +3,6 @@
 
 #include <vector>
 #include <string>
-#include <cassert>
-#include <algorithm>
 #include "IR.h"
 using namespace std;
 using namespace Boost::Internal;

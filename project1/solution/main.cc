@@ -3,7 +3,8 @@
 #include <fstream>
 #include <string>
 #include <cstring>
-#include "parse.h"
+//#include "parse.h"
+#include "IRGenerator.h"
 #include "IRPrinter.h"
 #include "MyPrinter.h"
 int main() 
