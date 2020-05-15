@@ -11,7 +11,8 @@ struct record {
 	vector<string> out;
 	string name;
 	string type;
-	vector<vector<Expr> > vs;
+	vector<Stmt> _vs;
+	vector<vector<Expr>> vs;
 };
 
 void parse(FILE*, record&);

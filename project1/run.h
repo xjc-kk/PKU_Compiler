@@ -9,5 +9,10 @@ void kernel_case5(float (&B)[16][32], float (&C)[32][32], float (&D)[16][32],
 void kernel_case6(float (&B)[2][16][7][7], float (&C)[8][16][3][3], float (&A)[2][8][5][5]);
 void kernel_case7(float (&A)[32][16], float (&B)[16][32]);
 void kernel_case10(float (&B)[10][10], float (&A)[8][8]);
+void kernel_case10(float (&B)[10][10], float (&A)[8][8]);
+void kernel_case11(float (&B)[3], float (&C)[3][4], float (&D)[8], float (&E)[5], 
+		float &alpha, float (&A)[3]);
 
 #endif  // PROJECT1_RUN_H
+
+

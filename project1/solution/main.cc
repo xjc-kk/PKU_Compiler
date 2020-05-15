@@ -11,19 +11,20 @@ int main()
 {
 //	char filehead[100] = "#include \"../run.h\"\n\n";
 
-	/*char iname[100], oname[100];
+	char iname[100], oname[100];
 
 	record js;
-	for (int i=0;i<=10;i++)
+
+	for (int i=0;i<=11;i++)
 	{
-		if(i == 0){
-			sprintf(iname, "./cases/example.json");
-			sprintf(oname, "./kernels/kernel_example.cc");
-		}
-		else{
-			sprintf(iname, "./cases/case%d.json", i);
-			sprintf(oname, "./kernels/kernel_case%d.cc", i);
-		}
+        if (i > 0) {
+		    sprintf(iname, "./cases/case%d.json", i);
+		    sprintf(oname, "./kernels/kernel_case%d.cc", i);
+        }
+        else {
+            sprintf(iname, "./cases/example.json");
+            sprintf(oname, "./kernels/kernel_example.cc");
+        }
 		FILE* fin  = fopen(iname, "r");
 		if (fin == nullptr) continue;
 		// FILE* fout = fopen(oname, "w");
@@ -45,21 +46,28 @@ int main()
 		for (int i=0;i<js.vs.size();i++)
 		{
 			IRPrinter printer;
-	//		auto m = s.as<Move>();
-	//		auto e = m->src.as<Binary>();
-			std::cout <<  printer.print(js.vs[i])<<std::endl;
-			for (auto var : js.var_list[i])
+			//		auto m = s.as<Move>();
+			//		auto e = m->src.as<Binary>();
+			std::cout <<  printer.print(js._vs[i])<<std::endl;
+			for (auto e : js.vs[i])
 			{
-				IRPrinter p;
-				std::cout << p.print(var) <<'<';
-				for (auto j : var.as<Var>()->shape)
-					std::cout << j << ' ';
-				std::cout<<'>'<<std::endl;
+				IRPrinter printer;
+				std::cout <<  printer.print(e)<<std::endl;
 			}
+			std::cout<<std::endl;
+			/*		
+					for (auto var : js.var_list[i])
+					{
+					IRPrinter p;
+					std::cout << p.print(var) <<'<';
+					for (auto j : var.as<Var>()->shape)
+					std::cout << j << ' ';
+					std::cout<<'>'<<std::endl;
+					}
+					*/	
 		}
 		std::cout << "end!\n\n";
-	*/
-
+/*
 	record js;
 	js.in = {"B", "C"};
 	js.out = {"A"};
@@ -71,7 +79,7 @@ int main()
 	st.push_back(Var::make(Type::float_scalar(32), "B", {Index::make(Type::int_scalar(32), "j", Dom::make(Type::int_scalar(32), 0, 3), IndexType::Spatial)}, {3}));
 	st.push_back(Var::make(Type::float_scalar(32), "C", {Index::make(Type::int_scalar(32), "k", Dom::make(Type::int_scalar(32), 0, 3), IndexType::Spatial)}, {3}));
 	js.vs.push_back(st);
-
+*/
 	//	part2
 		Group kernel = IRGenerator(js);
 
@@ -82,11 +90,11 @@ int main()
 		std::string mycode = myprinter.print(kernel);
 
 		std::cout << mycode;
-	//	std::ofstream ofile(oname, std::ios::out);
-	//	std::string head = "#include \"../run.h\"\n\n";
-	//	ofile << head;
-    //	ofile << mycode;
-    //	ofile.close();
+		std::ofstream ofile(oname, std::ios::out);
+		std::string head = "#include \"../run.h\"\n\n";
+		ofile << head;
+    	ofile << mycode;
+    	ofile.close();
 		// fputs(mycode, fout);
 
 		std::cout << "Success!\n";
@@ -98,7 +106,7 @@ int main()
 		// std::cout << code;
 
 		// std::cout << "Success!\n\n";
-	//}
+	}
 	return 0;
 }
 

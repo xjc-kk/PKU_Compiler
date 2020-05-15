@@ -1,0 +1,8 @@
+{
+    "name": "kernel_case11",
+    "ins": ["B", "C", "D", "E", "alpha"],
+    "outs": ["A"],
+    "data_type": "float",
+    "kernel": "A<3>[i] = B<3>[j] + (C<3, 4>[k, l / 2] + D<8>[l]) - E<5>[m] * alpha<1>;"
+}
+

@@ -303,7 +303,58 @@ bool test_case10(std::mt19937 &gen, std::uniform_real_distribution<float> &dis) 
     // correct
     return true;
 }
+#define rep(i, b) for (int i=0;i<b;i++)
 
+#define init(A, n) rep(i, n) A[i] = dis(gen)
+
+#define diff(golden, A, n) \
+rep(i, n) \
+if (std::abs(golden[i] - A[i]) >= 1e-5) \
+{\
+	std::cout << "Wrong answer\n";\
+	return false;\
+}
+
+bool test_case11(std::mt19937 &gen, std::uniform_real_distribution<float> &dis)
+{
+    float A[3] = {0};
+    float B[3] = {0};
+    float C[3][4] = {{0}};
+    float D[8] = {0};
+    float E[5] = {0};
+	float alpha = 0;
+    float golden[3] = {0};
+	
+	rep(i, 3) A[i] = dis(gen);
+	rep(i, 3) B[i] = dis(gen);
+	rep(i, 3) rep(j, 4) C[i][j] = dis(gen);
+	rep(i, 8) D[i] = dis(gen);
+	rep(i, 5) E[i] = dis(gen);
+	alpha = dis(gen);
+	rep(i, 3)
+	{
+		float tmp=0;
+		rep(j, 3)
+			tmp += B[j];
+		rep(k, 3)
+			rep(l, 8)
+				tmp += C[k][l/2] + D[l];
+		rep(m, 5)
+			tmp -= E[m] * alpha;
+        golden[i] = tmp;
+	}
+    try {
+        kernel_case11(B, C, D, E, alpha, A);
+    } catch (...) {
+        std::cout << "Failed because of runtime error\n";
+        return false;
+    }
+
+	diff(golden, A, 3);
+    // check
+    // correct
+    return true;
+}
 
 int main() {
     std::random_device rd;  // get random seed
@@ -348,6 +399,12 @@ int main() {
     std::cout << "Case 9 is hidden\n";
     std::cout << "Case 10 ";
     res = test_case10(gen, dis);
+    if (res) {
+        std::cout << "Success!\n";
+    }
+
+    std::cout << "Case 11 ";
+	res = test_case11(gen, dis);
     if (res) {
         std::cout << "Success!\n";
     }
