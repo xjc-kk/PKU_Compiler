@@ -9,25 +9,46 @@
 #include "IRPrinter.h"
 
 IRVisitor visitor;
+IRMutator mutator;
 Type index_type;
 Type dataType;
 
 std::vector<Expr> ins;
 std::vector<Expr> outs;
 std::vector<Expr> left_index;
-std::vector<Expr> right_index;
-std::vector<Expr> all_index;
 vector<Stmt> main_stmt;
+int stmtNum;
 
-void genStmt(Stmt s){
+void genStmt(vector<Expr> s){
     left_index.clear();
-    right_index.clear();
-    all_index.clear();
 
-    s.visit_stmt(&visitor);
+    visitor.index_mp.clear();
+    visitor.needIf.clear();
+    visitor.termIndex.clear();
+    visitor.left_indexes.clear();
+    visitor.needIf.resize(s.size());
+    visitor.termIndex.resize(s.size());
 
-    // generate indexes within stmt s
+    vector<Stmt> termStmts;
 
+    // visit dst var
+    visitor.enterR = false;
+    s[0].visit_expr(&visitor);
+
+    // generate claim of tmp and set tmp to 0
+    mutator.stmtNum = stmtNum;
+    Expr tmp = mutator.mutate(s[0]);
+    main_stmt.push_back(Move::make(tmp, tmp, MoveType::MemToMem));
+    termStmts.push_back(Move::make(tmp, IntImm::make(dataType, 0), MoveType::MemToMem));
+
+    // visit each src term
+    visitor.enterR = true;
+    for(int i = 1; i < s.size(); ++i){
+        visitor.ti = i;
+        s[i].visit_expr(&visitor);
+    }
+
+    // generate left indexes
     //cout << "check indexes:\n";
     for(auto index_name : visitor.left_indexes){
         auto dom = visitor.index_mp[index_name];
@@ -38,79 +59,41 @@ void genStmt(Stmt s){
         Expr index_dom = Dom::make(index_type, begin, end-begin);
         Expr index_e = Index::make(index_type, index_name, index_dom, IndexType::Spatial);
         left_index.push_back(index_e);
-        all_index.push_back(index_e);
     }
 
-    for(int i = visitor.left_indexes.size(); i < visitor.indexes.size(); ++i){
-        string index_name = visitor.indexes[i];
-        auto dom = visitor.index_mp[index_name];
-        int begin = dom.first;
-        int end = dom.second;
-        //cout << index_name << ": [" << begin << "," << end << ")\n";
-
-        Expr index_dom = Dom::make(index_type, begin, end); // extent is actually the end
-        Expr index_e = Index::make(index_type, index_name, index_dom, IndexType::Reduce);
-        right_index.push_back(index_e);
-        all_index.push_back(index_e);
-    }
-
-
-    vector<long unsigned int> v;
-    for(auto i : (visitor.var_dims)[visitor.leftVarName]){
-        v.push_back(i);
-    }
-
-    if(!visitor.leftVarUseful){     // generate out = 0
-        Expr dst = Var::make(dataType, visitor.leftVarName, left_index, v);
-        Expr src = IntImm::make(dataType, 0);
-        Stmt initiate = Move::make(dst, src, MoveType::MemToMem);
-
-        Stmt move_stmt = Move::make(s.as<Move>()->dst, Binary::make(dataType, BinaryOpType::Add, s.as<Move>()->dst, s.as<Move>()->src), MoveType::MemToMem);
-        
-        if(visitor.needIf.empty()){
-            main_stmt.push_back(LoopNest::make(left_index, {initiate, LoopNest::make(right_index, {move_stmt})}));
+    // deal with each term loop
+    for(int i = 1; i < s.size(); ++i){
+        vector<Expr> termIndexes;
+        for(auto ind: visitor.termIndex[i]){
+            auto dom = visitor.index_mp[ind];
+            int begin = dom.first;
+            int end = dom.second;
+            Expr index_dom = Dom::make(index_type, begin, end);
+            Expr index_e = Index::make(index_type, ind, index_dom, IndexType::Reduce);
+            termIndexes.push_back(index_e);
         }
-        else{
-            Stmt ifStmt = move_stmt;
-            //cout << "check needIf:\n";
-            for(auto itr : visitor.needIf){
-                IRPrinter printer;
-                //cout << printer.print(itr.first) << " : ";
-                //cout << itr.second << "\n";
-                Expr cond = Binary::make(index_type, BinaryOpType::And, 
-                                    Compare::make(index_type, CompareOpType::LT, itr.first, IntImm::make(index_type, itr.second)),
-                                    Compare::make(index_type, CompareOpType::GE, itr.first, IntImm::make(index_type, 0)));
-                ifStmt = IfThenElse::make(cond, ifStmt, {});
-            }
-            main_stmt.push_back(LoopNest::make(left_index, {initiate, LoopNest::make(right_index, {ifStmt})}));
+        Stmt ifStmt = Move::make(tmp, Binary::make(dataType, BinaryOpType::Add, tmp, s[i]), MoveType::MemToMem);
+        for(auto itr : visitor.needIf[i]){
+            Expr cond = Binary::make(index_type, BinaryOpType::And, 
+                                Compare::make(index_type, CompareOpType::LT, itr.first, IntImm::make(index_type, itr.second)),
+                                Compare::make(index_type, CompareOpType::GE, itr.first, IntImm::make(index_type, 0)));
+            ifStmt = IfThenElse::make(cond, ifStmt, {});
         }
-        
+        if(!termIndexes.empty())
+            termStmts.push_back(LoopNest::make(termIndexes, {ifStmt}));
+        else
+            termStmts.push_back(ifStmt);
+    }
+
+    // generate main loop part
+    if(!left_index.empty()){
+        main_stmt.push_back(LoopNest::make(left_index, termStmts));
+        main_stmt.push_back(LoopNest::make(left_index, {Move::make(s[0], tmp, MoveType::MemToMem)}));
     }
     else{
-        if(visitor.leftVarPreSave){ // preSave outVar
-            Expr dst = Var::make(dataType, "tmp", left_index, v);
-            Expr src = Var::make(dataType, visitor.leftVarName, left_index, v);
-            Stmt preSave = Move::make(dst, src, MoveType::MemToMem);
-            main_stmt.push_back(LoopNest::make(left_index, {preSave}));
-        }
-
-        if(visitor.needIf.empty()){
-            main_stmt.push_back(LoopNest::make(all_index, {s}));
-        }
-        else{
-            Stmt ifStmt = s;
-            //cout << "check needIf:\n";
-            for(auto itr : visitor.needIf){
-                IRPrinter printer;
-                //cout << printer.print(itr.first) << " : ";
-                //cout << itr.second << "\n";
-                Expr cond = Binary::make(index_type, BinaryOpType::And, 
-                                    Compare::make(index_type, CompareOpType::LT, itr.first, IntImm::make(index_type, itr.second)),
-                                    Compare::make(index_type, CompareOpType::GE, itr.first, IntImm::make(index_type, 0)));
-                ifStmt = IfThenElse::make(cond, ifStmt, {});
-            }
-            main_stmt.push_back(LoopNest::make(all_index, {ifStmt}));
-        }
+        for(auto st: termStmts)
+            main_stmt.push_back(st);
+        main_stmt.push_back(Move::make(s[0], tmp, MoveType::MemToMem));
     }
  
 }
@@ -124,9 +107,11 @@ Group IRGenerator(record& js) {
     visitor.var_dims.clear();
     main_stmt.clear();
 
+    stmtNum = 0;
+
     for(auto s : js.vs){
+        stmtNum++;
         genStmt(s);
-        // generate loop_nest
     }
     
     // for(auto var : visitor.var_dims){

@@ -30,7 +30,6 @@ namespace Internal {
 
 
 void IRVisitor::visit(Ref<const IntImm> op) {
-    //std::cout << "IntImm: " << op->value() << "\n";
     return;
 }
 
@@ -57,7 +56,6 @@ void IRVisitor::visit(Ref<const Unary> op) {
 
 
 void IRVisitor::visit(Ref<const Binary> op) {
-    //std::cout << "Enter a Binary Node...\n";
     (op->a).visit_expr(this);
     (op->b).visit_expr(this);
     return;
@@ -103,22 +101,9 @@ void IRVisitor::visit(Ref<const Var> op) {
     //std::cout << "Enter a Var Node...\n";
 
     std::vector<int> dims;
-    std::vector<std::string> args;
 
     if(op->shape.size() == 1 && op->shape[0] == 1 && op->args.size() == 0){ // scalar
         dims.push_back((int)op->shape[0]);
-        if(!enterR){
-            leftVarName = op->name;
-        }
-        else{
-            if(op->name == leftVarName){
-                leftVarUseful = true;
-                if(args != left_indexes){
-                    leftVarPreSave = true;
-                    
-                }
-            }
-        }
         if(var_dims.find(op->name) == var_dims.end())
             var_dims[op->name] = dims;
         return;
@@ -139,8 +124,8 @@ void IRVisitor::visit(Ref<const Var> op) {
                 left_indexes.push_back(curArg->name);
             }
             else{
-                if(op->name == leftVarName)
-                    args.push_back(curArg->name);
+                if(find(left_indexes.begin(), left_indexes.end(), curArg->name) == left_indexes.end())
+                    termIndex[ti].insert(curArg->name);
             }
 
             if(index_mp.find(curArg->name) != index_mp.end()){
@@ -148,27 +133,13 @@ void IRVisitor::visit(Ref<const Var> op) {
                 index_mp[curArg->name].second = std::min(index_mp[curArg->name].second, (int)op->shape[i]);
             }
             else{
-                indexes.push_back(curArg->name);
                 index_mp[curArg->name] = std::make_pair(0, op->shape[i]);
             }
         }
         else{   // binary Expr like i+j or k+2 or 2*m+1
-            needIf.push_back(std::make_pair(op->args[i], op->shape[i]));
+            needIf[ti].push_back(std::make_pair(op->args[i], op->shape[i]));
         }
 
-    }
-
-    if(!enterR){
-        leftVarName = op->name;
-    }
-    else{
-        if(op->name == leftVarName){
-            leftVarUseful = true;
-            if(args != left_indexes){
-                leftVarPreSave = true;
-                
-            }
-        }
     }
 
     if(var_dims.find(op->name) == var_dims.end())
@@ -211,15 +182,7 @@ void IRVisitor::visit(Ref<const IfThenElse> op) {
 
 
 void IRVisitor::visit(Ref<const Move> op) {
-    index_mp.clear();
-    needIf.clear();
-    indexes.clear();
-    left_indexes.clear();
-    leftVarUseful = false;
-    leftVarPreSave = false;
-    enterR = false;
     (op->dst).visit_expr(this);
-    enterR = true;
     (op->src).visit_expr(this);
     return;
 }

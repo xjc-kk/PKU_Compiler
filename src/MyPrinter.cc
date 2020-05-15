@@ -47,12 +47,14 @@ void MyPrinter::visit(Ref<const StringImm> op) {
 
 
 void MyPrinter::visit(Ref<const Unary> op) {
+    oss << "(";
     if (op->op_type == UnaryOpType::Neg) {
         oss << "-";
     } else if (op->op_type == UnaryOpType::Not) {
         oss << "!";
     }
     (op->a).visit_expr(this);
+    oss << ")";
 }
 
 
@@ -243,6 +245,9 @@ void MyPrinter::visit(Ref<const IfThenElse> op) {
 
 void MyPrinter::visit(Ref<const Move> op) {
     print_indent();
+    /*if(op->src == NULL){
+        oss << "float ";
+    }*/
     (op->dst).visit_expr(this);
     // oss << " =<";
     // if (op->move_type == MoveType::HostToDevice) {
@@ -267,8 +272,10 @@ void MyPrinter::visit(Ref<const Move> op) {
     //     oss << "local_to_local";
     // }
     // oss << "> ";
-    oss << " = ";
-    (op->src).visit_expr(this);
+    //if(op->src != NULL){
+        oss << " = ";
+        (op->src).visit_expr(this);
+    //}
     oss << ";\n";
 }
 

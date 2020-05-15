@@ -56,6 +56,8 @@ class IRMutator {
     virtual Stmt visit(Ref<const IfThenElse>);
     virtual Stmt visit(Ref<const Move>);
     virtual Group visit(Ref<const Kernel>);
+
+    int stmtNum;
  private:
 };
 

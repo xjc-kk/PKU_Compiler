@@ -11,8 +11,7 @@ struct record {
 	vector<string> out;
 	string name;
 	string type;
-	vector<Stmt> vs;
-	vector<vector<Expr>> var_list; // vector of var, 会有重复
+	vector<vector<Expr> > vs;
 };
 
 void parse(FILE*, record&);
