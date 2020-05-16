@@ -1,0 +1,8 @@
+{
+    "name": "kernel_case12",
+    "ins": ["A", "B"],
+    "outs": ["A"],
+    "data_type": "int",
+    "kernel": "A<32, 32>[i, j] = A<32, 32>[j, i] + B<32, 5, 32>[j, k, i];"
+}
+

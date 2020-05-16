@@ -145,6 +145,8 @@ const char* parse_av(const char* pt, vector<Expr>& av)
 		}
 		if (isop(*i))
 		{
+			if (*i == '/' && *(i+1) == '/')
+				i++;
 			putop(*i, id, op);
 		}
 		else if (*i >= '0' && *i <= '9')
@@ -176,6 +178,8 @@ Expr parse_factor(const char* const pt, const char* const end)
 
 		if (isop(*i)) 
 		{
+			if (*i == '/' && *(i+1) == '/')
+				i++;
 			putop(*i, id, op);
 		}
 		else if (*i >= '0' && *i <= '9')

@@ -15,7 +15,7 @@ int main()
 
 	record js;
 
-	for (int i=0;i<=11;i++)
+	for (int i=0;i<=12;i++)
 	{
         if (i > 0) {
 		    sprintf(iname, "./cases/case%d.json", i);

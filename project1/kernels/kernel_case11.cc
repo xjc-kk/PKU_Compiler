@@ -1,11 +1,11 @@
 #include "../run.h"
 
-void kernel_case11(float (&B)[3], float (&C)[3][4], float (&D)[8], float (&E)[5], float (&alpha), float (&A)[3]) {
-  float tmp1[3];
+void kernel_case11(int (&B)[3], int (&C)[3][4], int (&D)[8], int (&E)[5], int (&alpha), int (&A)[3]) {
+  int tmp1[3];
   for (int i = 0; i < 3; ++i) {
     tmp1[i] = 0;
     for (int j = 0; j < 3; ++j) {
-      tmp1[i] = (tmp1[i] + B[j]);
+      tmp1[i] = (tmp1[i] + (A[i] * B[j]));
     }
     for (int k = 0; k < 3; ++k) {
       for (int l = 0; l < 8; ++l) {
