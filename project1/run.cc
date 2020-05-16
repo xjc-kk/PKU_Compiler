@@ -328,7 +328,7 @@ if (std::abs(golden[i][j] - A[i][j]) >= 1e-5) \
 }
 
 
-bool test_case11(std::mt19937 &gen, std::uniform_real_distribution<int> &dis)
+bool test_case11(std::mt19937 &gen, std::uniform_real_distribution<float> &dis)
 {
 	INIT1(A, int, 3);
 	INIT1(B, int, 3);
@@ -363,7 +363,7 @@ bool test_case11(std::mt19937 &gen, std::uniform_real_distribution<int> &dis)
     return true;
 }
 
-bool test_case12(std::mt19937 &gen, std::uniform_real_distribution<int> &dis)
+bool test_case12(std::mt19937 &gen, std::uniform_real_distribution<float> &dis)
 {
 	INIT2(A, int, 32, 32);
 	INIT3(B, int, 32, 5, 32);
@@ -393,7 +393,7 @@ int main() {
     std::random_device rd;  // get random seed
     std::mt19937 gen(rd()); // standard
     std::uniform_real_distribution<float> dis(-10, 10);
-    std::uniform_real_distribution<int> dis_int(-10, 10);
+    //std::uniform_real_distribution<int> dis_int(-10, 10);
     std::cout << "Random distribution ready\n";
     // example
     std::cout << "Example ";
@@ -438,13 +438,13 @@ int main() {
     }
 
     std::cout << "Case 11 ";
-	res = test_case11(gen, dis_int);
+	res = test_case11(gen, dis);
     if (res) {
         std::cout << "Success!\n";
     }
 
 	std::cout << "Case 12 ";
-	res = test_case12(gen, dis_int);
+	res = test_case12(gen, dis);
     if (res) {
         std::cout << "Success!\n";
     }

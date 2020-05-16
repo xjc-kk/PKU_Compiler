@@ -126,8 +126,6 @@ Group IRGenerator(record& js) {
     
     // generate ins & outs
     for(auto in_name = js.in.begin(); in_name != js.in.end(); in_name++){
-        if(find(js.out.begin(), js.out.end(), *in_name) != js.out.end())    // avoid reduplicate with outs
-            continue;
         auto var = visitor.var_dims.find(*in_name);
         if(var != visitor.var_dims.end()){
             vector<long unsigned int> v;
@@ -139,6 +137,8 @@ Group IRGenerator(record& js) {
         }
     }
     for(auto out_name = js.out.begin(); out_name != js.out.end(); out_name++){
+        if(find(js.in.begin(), js.in.end(), *out_name) != js.in.end())    // avoid reduplicate with outs
+            continue;
         auto var = visitor.var_dims.find(*out_name);
         if(var != visitor.var_dims.end()){
             vector<long unsigned int> v;
