@@ -67,19 +67,7 @@ int main()
 					*/	
 		}
 		std::cout << "end!\n\n";
-/*
-	record js;
-	js.in = {"B", "C"};
-	js.out = {"A"};
-	js.name = "test";
-	js.type = "float";
-	Type dataType = Type::int_scalar(32);
-	vector<Expr> st;
-	st.push_back(Var::make(Type::float_scalar(32), "A", {Index::make(Type::int_scalar(32), "i", Dom::make(Type::int_scalar(32), 0, 3), IndexType::Spatial)}, {3}));
-	st.push_back(Var::make(Type::float_scalar(32), "B", {Index::make(Type::int_scalar(32), "j", Dom::make(Type::int_scalar(32), 0, 3), IndexType::Spatial)}, {3}));
-	st.push_back(Var::make(Type::float_scalar(32), "C", {Index::make(Type::int_scalar(32), "k", Dom::make(Type::int_scalar(32), 0, 3), IndexType::Spatial)}, {3}));
-	js.vs.push_back(st);
-*/
+
 	//	part2
 		Group kernel = IRGenerator(js);
 

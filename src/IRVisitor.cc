@@ -124,7 +124,7 @@ void IRVisitor::visit(Ref<const Var> op) {
                 left_indexes.push_back(curArg->name);
             }
             else{
-                if(find(left_indexes.begin(), left_indexes.end(), curArg->name) == left_indexes.end())
+                if(find(left_indexes.begin(), left_indexes.end(), curArg->name) == left_indexes.end())  // term private index
                     termIndex[ti].insert(curArg->name);
             }
 

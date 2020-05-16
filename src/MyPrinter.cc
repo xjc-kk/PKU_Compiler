@@ -159,6 +159,17 @@ void MyPrinter::visit(Ref<const Var> op) {
             oss << "]";
         }
     } 
+    else if(print_claim){
+        if (op->type() == Type::float_scalar(32))   oss << "float "; //check
+        else oss << "int ";
+        oss << op->name;
+        for (size_t i = 0; i < op->shape.size(); ++i) {
+            if(i == 0 && op->shape[i] == 1) break;// not an array
+            oss << "[";
+            oss << op->shape[i];
+            oss << "]";
+        }
+    }
     else {
         oss << op->name;
         for (size_t i = 0; i < op->args.size(); ++i) {
@@ -245,10 +256,13 @@ void MyPrinter::visit(Ref<const IfThenElse> op) {
 
 void MyPrinter::visit(Ref<const Move> op) {
     print_indent();
-    /*if(op->src == NULL){
-        oss << "float ";
-    }*/
+    if(!op->src.defined()){
+        print_claim = true;
+    }
     (op->dst).visit_expr(this);
+    if(!op->src.defined()){
+        print_claim = false;
+    }
     // oss << " =<";
     // if (op->move_type == MoveType::HostToDevice) {
     //     oss << "host_to_device";
@@ -272,10 +286,10 @@ void MyPrinter::visit(Ref<const Move> op) {
     //     oss << "local_to_local";
     // }
     // oss << "> ";
-    //if(op->src != NULL){
+    if(op->src.defined()){
         oss << " = ";
         (op->src).visit_expr(this);
-    //}
+    }
     oss << ";\n";
 }
 
@@ -287,6 +301,7 @@ void MyPrinter::visit(Ref<const Kernel> op) {
     // } else if (op->kernel_type == KernelType::GPU) {
     //     oss << "<GPU>";
     // }
+    print_claim = false;
     oss << "void";
     oss << " " << op->name << "(";
     print_arg = true;

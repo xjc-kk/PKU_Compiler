@@ -17,7 +17,9 @@ std::vector<Expr> ins;
 std::vector<Expr> outs;
 std::vector<Expr> left_index;
 vector<Stmt> main_stmt;
-int stmtNum;
+int tmpNum;
+Expr tmp;
+std::string tmpVarName;
 
 void genStmt(vector<Expr> s){
     left_index.clear();
@@ -35,11 +37,19 @@ void genStmt(vector<Expr> s){
     visitor.enterR = false;
     s[0].visit_expr(&visitor);
 
-    // generate claim of tmp and set tmp to 0
-    mutator.stmtNum = stmtNum;
-    Expr tmp = mutator.mutate(s[0]);
-    main_stmt.push_back(Move::make(tmp, tmp, MoveType::MemToMem));
-    termStmts.push_back(Move::make(tmp, IntImm::make(dataType, 0), MoveType::MemToMem));
+    // generate claim of tmp
+    if(tmpVarName == "" || tmpVarName != s[0].as<Var>()->name){ // need claim of a new tmp
+        tmpNum++;
+        mutator.stmtNum = tmpNum;
+        tmp = mutator.mutate(s[0]);
+        tmpVarName = s[0].as<Var>()->name;
+        main_stmt.push_back(Move::make(tmp, Expr(), MoveType::MemToMem));   // claim stmt
+    }
+    // set tmp to 0
+    if(dataType == Type::int_scalar(32))
+        termStmts.push_back(Move::make(tmp, IntImm::make(dataType, 0), MoveType::MemToMem));
+    else
+        termStmts.push_back(Move::make(tmp, FloatImm::make(dataType, 0), MoveType::MemToMem));
 
     // visit each src term
     visitor.enterR = true;
@@ -107,31 +117,17 @@ Group IRGenerator(record& js) {
     visitor.var_dims.clear();
     main_stmt.clear();
 
-    stmtNum = 0;
+    tmpNum = 0;
+    tmpVarName = "";
 
     for(auto s : js.vs){
-        stmtNum++;
         genStmt(s);
     }
     
-    // for(auto var : visitor.var_dims){
-    //     vector<long unsigned int> v;
-    //     for(auto i : var.second){
-    //         v.push_back(i);
-    //     }
-
-    //     if(find(js.out.begin(), js.out.end(), var.first) != js.out.end()){
-    //         Expr out_e = Var::make(dataType, var.first, {}, v);
-    //         outs.push_back(out_e);
-    //     }
-    //     if(find(js.in.begin(), js.in.end(), var.first) != js.in.end()){
-    //         Expr in_e = Var::make(dataType, var.first, {}, v);
-    //         ins.push_back(in_e);
-    //     }
-    // }
-
     // generate ins & outs
     for(auto in_name = js.in.begin(); in_name != js.in.end(); in_name++){
+        if(find(js.out.begin(), js.out.end(), *in_name) != js.out.end())    // avoid reduplicate with outs
+            continue;
         auto var = visitor.var_dims.find(*in_name);
         if(var != visitor.var_dims.end()){
             vector<long unsigned int> v;
@@ -152,7 +148,8 @@ Group IRGenerator(record& js) {
             Expr out_e = Var::make(dataType, var->first, {}, v);
             outs.push_back(out_e);
         }
-    }    
+    }
+     
     // kernel
     Group kernel = Kernel::make(js.name, ins, outs, main_stmt, KernelType::CPU);
 

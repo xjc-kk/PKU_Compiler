@@ -1,7 +1,7 @@
 #include "../run.h"
 
 void kernel_case10(float (&B)[10][10], float (&A)[8][8]) {
-  tmp1[i][j] = tmp1[i][j];
+  float tmp1[8][8];
   for (int i = 0; i < 8; ++i) {
     for (int j = 0; j < 8; ++j) {
       tmp1[i][j] = 0;
