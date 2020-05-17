@@ -5,7 +5,7 @@
 #include <cstring>
 //#include "parse.h"
 #include "IRGenerator.h"
-#include "IRPrinter.h"
+//#include "IRPrinter.h"
 #include "MyPrinter.h"
 int main() 
 {
@@ -28,13 +28,13 @@ int main()
 		FILE* fin  = fopen(iname, "r");
 		if (fin == nullptr) continue;
 		// FILE* fout = fopen(oname, "w");
-		std::cout<<"process :" << iname<<std::endl;
+	//	std::cout<<"process :" << iname<<std::endl;
 
 	//	fputs(filehead, fout);
 		
 		// part1
 		parse(fin, js);
-		
+	/*	
 		puts("check parse:");
 		std::cout<<js.name<<std::endl;
 		std::cout<<js.type<<std::endl;
@@ -55,29 +55,19 @@ int main()
 				std::cout <<  printer.print(e)<<std::endl;
 			}
 			std::cout<<std::endl;
-			/*		
-					for (auto var : js.var_list[i])
-					{
-					IRPrinter p;
-					std::cout << p.print(var) <<'<';
-					for (auto j : var.as<Var>()->shape)
-					std::cout << j << ' ';
-					std::cout<<'>'<<std::endl;
-					}
-					*/	
 		}
 		std::cout << "end!\n\n";
-
+*/
 	//	part2
 		Group kernel = IRGenerator(js);
 
-		std::cout << "Generator done!\n\n";
+//		std::cout << "Generator done!\n\n";
 
 	// 	part3
 	 	MyPrinter myprinter;
 		std::string mycode = myprinter.print(kernel);
 
-		std::cout << mycode;
+//		std::cout << mycode;
 		std::ofstream ofile(oname, std::ios::out);
 		std::string head = "#include \"../run.h\"\n\n";
 		ofile << head;
@@ -85,15 +75,7 @@ int main()
     	ofile.close();
 		// fputs(mycode, fout);
 
-		std::cout << "Success!\n";
-		
-
-		// IRPrinter printer;
-		// std::string code = printer.print(kernel);
-
-		// std::cout << code;
-
-		// std::cout << "Success!\n\n";
+//		std::cout << "Success!\n";
 	}
 	return 0;
 }
