@@ -98,9 +98,53 @@ void IRVisitor::visit(Ref<const Ramp> op) {
 
 
 void IRVisitor::visit(Ref<const Var> op) {
-    for (auto arg : op->args) {
-        arg.visit_expr(this);
+    //std::cout << "Enter a Var Node...\n";
+
+    std::vector<int> dims;
+
+    if(op->shape.size() == 1 && op->shape[0] == 1 && op->args.size() == 0){ // scalar
+        dims.push_back((int)op->shape[0]);
+        if(var_dims.find(op->name) == var_dims.end())
+            var_dims[op->name] = dims;
+        return;
     }
+        
+    
+    assert(op->shape.size() == op->args.size());
+
+
+    for (size_t i = 0; i < op->shape.size(); ++i) {  
+        dims.push_back((int)op->shape[i]);
+
+        if(op->args[i].node_type() == IRNodeType::Index){    // index like i or j
+            auto curArg = op->args[i].as<Index>();
+            //std::cout << "Single Index: " << curArg->name << op->shape[i] << "\n";
+
+            if(!enterR){
+                left_indexes.push_back(curArg->name);
+            }
+            else{
+                if(find(left_indexes.begin(), left_indexes.end(), curArg->name) == left_indexes.end())  // term private index
+                    termIndex[ti].insert(curArg->name);
+            }
+
+            if(index_mp.find(curArg->name) != index_mp.end()){
+                index_mp[curArg->name].first = std::max(index_mp[curArg->name].first, 0);
+                index_mp[curArg->name].second = std::min(index_mp[curArg->name].second, (int)op->shape[i]);
+            }
+            else{
+                index_mp[curArg->name] = std::make_pair(0, op->shape[i]);
+            }
+        }
+        else{   // binary Expr like i+j or k+2 or 2*m+1
+            needIf[ti].push_back(std::make_pair(op->args[i], op->shape[i]));
+        }
+
+    }
+
+    if(var_dims.find(op->name) == var_dims.end())
+        var_dims[op->name] = dims;
+
     return;
 }
 

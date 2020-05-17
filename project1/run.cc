@@ -303,12 +303,97 @@ bool test_case10(std::mt19937 &gen, std::uniform_real_distribution<float> &dis) 
     // correct
     return true;
 }
+#define rep(i, b) for (int i=0;i<b;i++)
+
+#define INIT0(A, type)       type A = dis(gen);
+#define INIT1(A, type, n)    type A[n] = {0}; rep(i, n) A[i] = dis(gen);
+#define INIT2(A, type, n, m) type A[n][m] = {{0}}; rep(i, n) rep(j,m) A[i][j] = dis(gen);
+#define INIT3(A, type, n, m, p) type A[n][m][p] = {{{0}}}; rep(i, n) rep(j,m) rep(k,p) A[i][j][k] = dis(gen);
+
+#define DIFF1(golden, A, n) \
+rep(i, n) \
+if (std::abs(golden[i] - A[i]) >= 1e-5) \
+{\
+	std::cout << "Wrong answer\n";\
+	return false;\
+}
+
+#define DIFF2(golden, A, n, m) \
+rep(i, n) \
+rep(j, m) \
+if (std::abs(golden[i][j] - A[i][j]) >= 1e-5) \
+{\
+	std::cout << "Wrong answer\n";\
+	return false;\
+}
 
 
+bool test_case11(std::mt19937 &gen, std::uniform_real_distribution<float> &dis)
+{
+	INIT1(A, int, 3);
+	INIT1(B, int, 3);
+	INIT2(C, int, 3, 4);
+	INIT1(D, int, 8);
+	INIT1(E, int, 5);
+	INIT0(alpha, int);
+    int golden[3] = {0};
+	
+	rep(i, 3)
+	{
+		int tmp=0;
+		rep(j, 3)
+			tmp += A[i] * B[j];
+		rep(k, 3)
+			rep(l, 8)
+				tmp += C[k][l/2] + D[l];
+		rep(m, 5)
+			tmp -= E[m] * alpha;
+        golden[i] = tmp;
+	}
+    try {
+        kernel_case11(B, C, D, E, alpha, A);
+    } catch (...) {
+        std::cout << "Failed because of runtime error\n";
+        return false;
+    }
+
+	DIFF1(golden, A, 3);
+    // check
+    // correct
+    return true;
+}
+
+bool test_case12(std::mt19937 &gen, std::uniform_real_distribution<float> &dis)
+{
+	INIT2(A, int, 32, 32);
+	INIT3(B, int, 32, 5, 32);
+    int golden[32][32] = {{0}};
+	
+	rep(i, 32)
+	rep(j, 32)
+	{
+		int tmp=A[j][i];
+		rep(k, 5)
+			tmp += B[j][k][i];
+        golden[i][j] = tmp;
+	}
+    try {
+        kernel_case12(A, B);
+    } catch (...) {
+        std::cout << "Failed because of runtime error\n";
+        return false;
+    }
+
+	DIFF2(golden, A, 32, 32);
+    // check
+    // correct
+    return true;
+}
 int main() {
     std::random_device rd;  // get random seed
     std::mt19937 gen(rd()); // standard
     std::uniform_real_distribution<float> dis(-10, 10);
+    //std::uniform_real_distribution<int> dis_int(-10, 10);
     std::cout << "Random distribution ready\n";
     // example
     std::cout << "Example ";
@@ -348,6 +433,18 @@ int main() {
     std::cout << "Case 9 is hidden\n";
     std::cout << "Case 10 ";
     res = test_case10(gen, dis);
+    if (res) {
+        std::cout << "Success!\n";
+    }
+
+    std::cout << "Case 11 ";
+	res = test_case11(gen, dis);
+    if (res) {
+        std::cout << "Success!\n";
+    }
+
+	std::cout << "Case 12 ";
+	res = test_case12(gen, dis);
     if (res) {
         std::cout << "Success!\n";
     }

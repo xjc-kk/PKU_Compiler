@@ -3,5 +3,5 @@
     "ins": ["B", "C"],
     "outs": ["A"],
     "data_type": "float",
-    "kernel": "A<16, 32>[i, j] = A<16, 32>[i, j] + B<16, 32>[i, k] * C<32, 32>[k, j];"
+    "kernel": "A<16, 32>[i, j] = B<16, 32>[i, k] * C<32, 32>[k, j];"
 }

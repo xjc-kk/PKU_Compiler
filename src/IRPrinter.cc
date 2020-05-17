@@ -51,22 +51,26 @@ std::string IRPrinter::print(const Group &group) {
 
 
 void IRPrinter::visit(Ref<const IntImm> op) {
-    oss << "(" << op->type() << " " << op->value() << ")";
+    // oss << "(" << op->type() << " " << op->value() << ")";
+    oss << op->value();
 }
 
 
 void IRPrinter::visit(Ref<const UIntImm> op) {
-    oss << "(" << op->type() << " " << op->value() << ")";
+    // oss << "(" << op->type() << " " << op->value() << ")";
+    oss << op->value();
 }
 
 
 void IRPrinter::visit(Ref<const FloatImm> op) {
-    oss << "(" << op->type() << " " << op->value() << ")";
+    // oss << "(" << op->type() << " " << op->value() << ")";
+    oss << op->value();
 }
 
 
 void IRPrinter::visit(Ref<const StringImm> op) {
-    oss << "(" << op->type() << " " << op->value() << ")";
+    // oss << "(" << op->type() << " " << op->value() << ")";
+    oss << op->value();
 }
 
 
@@ -121,6 +125,7 @@ void IRPrinter::visit(Ref<const Compare> op) {
 
 
 void IRPrinter::visit(Ref<const Select> op) {
+    // TODO
     oss << "select(";
     (op->cond).visit_expr(this);
     oss << ", ";
@@ -132,6 +137,7 @@ void IRPrinter::visit(Ref<const Select> op) {
 
 
 void IRPrinter::visit(Ref<const Call> op) {
+    // TODO
     oss << "call_";
     if (op->call_type == CallType::Pure) {
         oss << "pure";
@@ -148,6 +154,7 @@ void IRPrinter::visit(Ref<const Call> op) {
 
 
 void IRPrinter::visit(Ref<const Cast> op) {
+    // TODO
     oss << "cast<" << op->new_type << ">(";
     (op->val).visit_expr(this);
     oss << ")";
@@ -155,6 +162,7 @@ void IRPrinter::visit(Ref<const Cast> op) {
 
 
 void IRPrinter::visit(Ref<const Ramp> op) {
+    // TODO
     oss << "ramp(";
     (op->base).visit_expr(this);
     oss << ", " << op->stride << ", " << op->lanes << ")";
@@ -172,7 +180,8 @@ void IRPrinter::visit(Ref<const Var> op) {
             }
         }
         oss << ">";
-    } else {
+    } 
+    else {
     oss << "[";
         for (size_t i = 0; i < op->args.size(); ++i) {
             op->args[i].visit_expr(this);
@@ -246,11 +255,14 @@ void IRPrinter::visit(Ref<const IfThenElse> op) {
     enter();
     (op->true_case).visit_stmt(this);
     exit();
-    print_indent();
+
+    // stop printing "else" since so far we don't need it
+    /*print_indent();
     oss << "} else {\n";
     enter();
     (op->false_case).visit_stmt(this);
-    exit();
+    exit();*/
+
     print_indent();
     oss << "}\n";
 }

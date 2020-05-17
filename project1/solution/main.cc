@@ -3,8 +3,10 @@
 #include <fstream>
 #include <string>
 #include <cstring>
-#include "parse.h"
+//#include "parse.h"
+#include "IRGenerator.h"
 #include "IRPrinter.h"
+#include "MyPrinter.h"
 int main() 
 {
 //	char filehead[100] = "#include \"../run.h\"\n\n";
@@ -12,14 +14,20 @@ int main()
 	char iname[100], oname[100];
 
 	record js;
-//	int i=10;
-	for (int i=1;i<=10;i++)
+
+	for (int i=0;i<=12;i++)
 	{
-		sprintf(iname, "./cases/case%d.json", i);
-		sprintf(oname, "./kernels/kernel_case%d.cc", i);
+        if (i > 0) {
+		    sprintf(iname, "./cases/case%d.json", i);
+		    sprintf(oname, "./kernels/kernel_case%d.cc", i);
+        }
+        else {
+            sprintf(iname, "./cases/example.json");
+            sprintf(oname, "./kernels/kernel_example.cc");
+        }
 		FILE* fin  = fopen(iname, "r");
 		if (fin == nullptr) continue;
-	//	FILE* fout = fopen(oname, "w");
+		// FILE* fout = fopen(oname, "w");
 		std::cout<<"process :" << iname<<std::endl;
 
 	//	fputs(filehead, fout);
@@ -38,32 +46,54 @@ int main()
 		for (int i=0;i<js.vs.size();i++)
 		{
 			IRPrinter printer;
-	//		auto m = s.as<Move>();
-	//		auto e = m->src.as<Binary>();
-			std::cout <<  printer.print(js.vs[i])<<std::endl;
-			for (auto var : js.var_list[i])
+			//		auto m = s.as<Move>();
+			//		auto e = m->src.as<Binary>();
+			std::cout <<  printer.print(js._vs[i])<<std::endl;
+			for (auto e : js.vs[i])
 			{
-				IRPrinter p;
-				std::cout << p.print(var) <<'<';
-				for (auto j : var.as<Var>()->shape)
-					std::cout << j << ' ';
-				std::cout<<'>'<<std::endl;
+				IRPrinter printer;
+				std::cout <<  printer.print(e)<<std::endl;
 			}
+			std::cout<<std::endl;
+			/*		
+					for (auto var : js.var_list[i])
+					{
+					IRPrinter p;
+					std::cout << p.print(var) <<'<';
+					for (auto j : var.as<Var>()->shape)
+					std::cout << j << ' ';
+					std::cout<<'>'<<std::endl;
+					}
+					*/	
 		}
 		std::cout << "end!\n\n";
 
 	//	part2
-	//	Group kernel = buildIR();
+		Group kernel = IRGenerator(js);
 
-	/*	part3
-	 *	MyPrinter printer;
-		std::string code = printer.print(kernel);
+		std::cout << "Generator done!\n\n";
 
-		std::cout << code;
-		fputs(code, fout);
+	// 	part3
+	 	MyPrinter myprinter;
+		std::string mycode = myprinter.print(kernel);
+
+		std::cout << mycode;
+		std::ofstream ofile(oname, std::ios::out);
+		std::string head = "#include \"../run.h\"\n\n";
+		ofile << head;
+    	ofile << mycode;
+    	ofile.close();
+		// fputs(mycode, fout);
 
 		std::cout << "Success!\n";
-		*/
+		
+
+		// IRPrinter printer;
+		// std::string code = printer.print(kernel);
+
+		// std::cout << code;
+
+		// std::cout << "Success!\n\n";
 	}
 	return 0;
 }

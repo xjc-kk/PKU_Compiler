@@ -118,7 +118,7 @@ Expr IRMutator::visit(Ref<const Var> op) {
     for (auto arg : op->args) {
         new_args.push_back(mutate(arg));
     }
-    return Var::make(op->type(), op->name, new_args, op->shape);
+    return Var::make(op->type(), "tmp"+std::to_string(stmtNum), new_args, op->shape);
 }
 
 

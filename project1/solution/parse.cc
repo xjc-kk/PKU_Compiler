@@ -66,9 +66,8 @@ inline int pri(char c)
 	}
 }
 	
-vector<Stmt> ret;
-vector<vector<Expr>> var_list;
-vector<Expr> var_l;
+//vector<vector<Expr>> var_list;
+//vector<Expr> var_l;
 
 Expr compute(Expr& a, Expr& b, char c)
 {
@@ -100,9 +99,10 @@ void putop(char c, stack<Expr>& id, stack<char>& op)
 		
 		if (oper == '=')
 		{
-			ret.push_back(Move::make(first, second, MoveType::MemToMem));
-			var_list.push_back(var_l);
-			var_l.resize(0);
+			assert(false);
+		//	ret.push_back(Move::make(first, second, MoveType::MemToMem));
+		//	var_list.push_back(var_l);
+		//	var_l.resize(0);
 			continue;
 		}
 		Expr ret = compute(first, second, oper);
@@ -145,6 +145,8 @@ const char* parse_av(const char* pt, vector<Expr>& av)
 		}
 		if (isop(*i))
 		{
+			if (*i == '/' && *(i+1) == '/')
+				i++;
 			putop(*i, id, op);
 		}
 		else if (*i >= '0' && *i <= '9')
@@ -162,22 +164,22 @@ const char* parse_av(const char* pt, vector<Expr>& av)
 		}
 	}
 }
-vector<Stmt> parse_kernel(const char* pt)
+Expr parse_factor(const char* const pt, const char* const end)
 {
 	stack<Expr> id;
 	stack<char> op;
-	ret.resize(0);
-	var_l.resize(0);
-	var_list.resize(0);
 
-	for (const char* i=pt;*i != '\0'; i++)
+	for (const char* i=pt;*i != '\0' && i < end; i++)
 	{
+	//	printf("%d %d\n", i-pt, *i);
 		if (*i == ' ') continue;
 		if (*i == '\n') continue;
-		if (*i == '\r') continue;
+		if (*i == '\r') continue;	// for Windows
 
 		if (isop(*i)) 
 		{
+			if (*i == '/' && *(i+1) == '/')
+				i++;
 			putop(*i, id, op);
 		}
 		else if (*i >= '0' && *i <= '9')
@@ -215,8 +217,71 @@ vector<Stmt> parse_kernel(const char* pt)
 				j = parse_av(j+2, av);
 			Expr var = Var::make(data_type, name, av, cv);
 			id.push(var);
-			var_l.push_back(var);
+		//	var_l.push_back(var);
 			i = j;
+		}
+	}
+	putop(')', id, op);
+	assert(id.size()==1);
+	assert(op.size()==0);
+	return id.top();
+}
+
+vector<vector<Expr>> parse_kernel(const char* pt)
+{
+	vector<vector<Expr>> ret;
+	vector<Expr> tmp;
+
+	tmp.resize(0);
+//	var_l.resize(0);
+//	var_list.resize(0);
+	const char* pred = pt;
+	int factor = 1;
+	for (const char* i=pt;*i!='\0';i++)
+	{
+		if (*i == '[')
+		{
+			while (*i != ']') i++;
+		}
+		if (*i == '<')
+		{
+			while (*i != '>') i++;
+		}
+		if (*i == '(')
+		{
+			int cnt=1;
+			while (cnt>0)
+			{
+				i++;
+				if (*i == '(')
+					cnt++;
+				if (*i == ')')
+					cnt--;
+			}
+		}
+		if (*i == '=' || *i == ';' || *i == '+' || *i == '-')
+		{
+			Expr e = parse_factor(pred, i);
+			if (factor == -1)
+			{
+				tmp.push_back(Unary::make(data_type, UnaryOpType::Neg, e));
+			}
+			else
+			{
+				tmp.push_back(e);
+			}
+			if (*i == ';')
+			{
+				ret.push_back(tmp);
+				tmp.resize(0);
+	//			var_list.push_back(var_l);
+	//			var_l.resize(0);
+			}
+			if (*i == '-')
+				factor = -1;
+			else
+				factor = 1;
+			pred = i+1;
 		}
 	}
 	return ret;
@@ -254,8 +319,19 @@ void parse(FILE* f, record& js)
 		if (strcmp(type, "outs"		)==0)	js.out  = parse_id(pt+1);
 		if (strcmp(type, "kernel"	)==0)	
 		{
-			js.vs   = parse_kernel(pt+1);
-			js.var_list = move(var_list);
+			js.vs = parse_kernel(pt+1);
+			js._vs.resize(0);
+			for (auto vec : js.vs)
+			{
+				stack<Expr> tmp;
+				tmp.push(vec[1]);
+				for (int i=2;i<vec.size();i++)
+				{
+					tmp.push(Binary::make(data_type, BinaryOpType::Add, tmp.top(), vec[i]));
+				}
+				js._vs.push_back(Move::make(vec[0], tmp.top(), MoveType::MemToMem));
+			}
+		//	js.var_list = move(var_list);
 		}
 	}
 }
