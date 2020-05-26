@@ -6,7 +6,7 @@
 #include <stack>
 #include <cassert>
 #include <algorithm>
-Type data_type;
+static Type data_type;
 
 string getstr(const char* i, const char* j)
 {
@@ -34,14 +34,29 @@ vector<string> parse_id(const char* pt)
 
 	return vs;
 }
-const char* parse_int(const char* i, int& x)
+const char* parse_int(const char* i, Expr& n)
 {
-	x = 0;
-	while (*i >= '0' && *i <= '9')
+	double x = 0;
+    double base = 1;
+    bool isint = true;
+	while ((*i >= '0' && *i <= '9') || *i == '.' )
 	{
-		x = x*10 + *i -'0';
+        if (*i == '.')
+            isint = false;
+        else
+            if (isint)
+		        x = x*10 + *i -'0';
+            else
+            {
+                base /= 10;
+                x = x + (*i - '0')*base;
+            }
 		i++;
 	}
+    if (isint)
+        n = Expr(int(x));
+    else
+        n = Expr(x);
 	return i-1;
 }
 inline int isop(char c)
@@ -152,9 +167,9 @@ const char* parse_av(const char* pt, vector<Expr>& av)
 		}
 		else if (*i >= '0' && *i <= '9')
 		{
-			int x;
-			i = parse_int(i, x);
-			id.push(Expr(x));
+			Expr n;
+			i = parse_int(i, n);
+			id.push(n);
 		}
 		else
 		{
@@ -185,9 +200,9 @@ Expr parse_factor(const char* const pt, const char* const end)
 		}
 		else if (*i >= '0' && *i <= '9')
 		{
-			int x;
-			i = parse_int(i, x);
-			id.push(Expr(x));
+			Expr n;
+			i = parse_int(i, n);
+			id.push(n);
 		}
 		else
 		{
@@ -318,10 +333,11 @@ void parse(FILE* f, record& js)
 		if (strcmp(type, "name"		)==0)	js.name = content;
 		if (strcmp(type, "ins"		)==0)	js.in   = parse_id(pt+1);
 		if (strcmp(type, "outs"		)==0)	js.out  = parse_id(pt+1);
+		if (strcmp(type, "grad_to"	)==0)	js.grad = parse_id(pt+1);
 		if (strcmp(type, "kernel"	)==0)	
 		{
 			js.vs = parse_kernel(pt+1);
-			js._vs.resize(0);
+		//	js._vs.resize(0);
 			for (auto vec : js.vs)
 			{
 				stack<Expr> tmp;
@@ -330,7 +346,7 @@ void parse(FILE* f, record& js)
 				{
 					tmp.push(Binary::make(data_type, BinaryOpType::Add, tmp.top(), vec[i]));
 				}
-				js._vs.push_back(Move::make(vec[0], tmp.top(), MoveType::MemToMem));
+		//		js._vs.push_back(Move::make(vec[0], tmp.top(), MoveType::MemToMem));
 			}
 		//	js.var_list = move(var_list);
 		}

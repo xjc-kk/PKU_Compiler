@@ -45,11 +45,6 @@ void genStmt(vector<Expr> s){
         tmpVarName = s[0].as<Var>()->name;
         main_stmt.push_back(Move::make(tmp, Expr(), MoveType::MemToMem));   // claim stmt
     }
-    // set tmp to 0
-    if(dataType == Type::int_scalar(32))
-        termStmts.push_back(Move::make(tmp, IntImm::make(dataType, 0), MoveType::MemToMem));
-    else
-        termStmts.push_back(Move::make(tmp, FloatImm::make(dataType, 0), MoveType::MemToMem));
 
     // visit each src term
     visitor.enterR = true;
@@ -57,7 +52,6 @@ void genStmt(vector<Expr> s){
         visitor.ti = i;
         s[i].visit_expr(&visitor);
     }
-
     // generate left indexes
     //cout << "check indexes:\n";
     for(auto index_name : visitor.left_indexes){
@@ -70,6 +64,31 @@ void genStmt(vector<Expr> s){
         Expr index_e = Index::make(index_type, index_name, index_dom, IndexType::Spatial);
         left_index.push_back(index_e);
     }
+//  vec.push_back(Var::make(data_type, "d"+vs[0].name, vs[0].args, vs[0].shape))
+    // set tmp to 0
+    { //modified by hzw
+        std::vector<Expr> index;
+        Stmt stmt;
+        auto ptr = tmp.as<Var>();
+        int dim = ptr->shape.size();
+
+        for (int i=0;i<dim;i++)
+        {
+            string idx_name = "i";
+            idx_name[0] += i;
+            Expr dom = Dom::make(index_type, 0, int(ptr->shape[i]));//tmp.args[i];
+            Expr ind = Index::make(index_type, idx_name, dom, IndexType::Spatial);
+            index.push_back(ind);
+        }
+        auto var = Var::make(dataType, ptr->name, index, ptr->shape);
+        if(dataType == Type::int_scalar(32))
+            stmt = Move::make(var, IntImm::make(dataType, 0), MoveType::MemToMem);
+        else
+            stmt = Move::make(var, FloatImm::make(dataType, 0), MoveType::MemToMem);
+        main_stmt.push_back(LoopNest::make(index, {stmt}));
+    }
+
+
 
     // deal with each term loop
     for(int i = 1; i < s.size(); ++i){

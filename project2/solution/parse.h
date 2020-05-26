@@ -9,9 +9,10 @@ using namespace Boost::Internal;
 struct record {
 	vector<string> in;
 	vector<string> out;
+    vector<string> grad;
 	string name;
 	string type;
-	vector<Stmt> _vs;
+//	vector<Stmt> _vs;
 	vector<vector<Expr>> vs;
 };
 

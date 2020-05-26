@@ -3,7 +3,7 @@
 
 #include "run2.h"
 
-const int eps = 1e-5;
+const double eps = 1e-5;
 
 
 bool test_case1(std::mt19937 &gen, std::uniform_real_distribution<float> &dis) {
@@ -33,7 +33,13 @@ bool test_case1(std::mt19937 &gen, std::uniform_real_distribution<float> &dis) {
         return false;
     }
 
-    // check
+ /*   for (int i = 0; i < 4; ++i) 
+        for (int j = 0; j < 16; ++j) 
+            printf("%lf%c", golden[i][j], j<15?' ':'\n');
+    for (int i = 0; i < 4; ++i) 
+        for (int j = 0; j < 16; ++j) 
+            printf("%lf%c", dA[i][j], j<15?' ':'\n');
+ */   // check
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 16; ++j) {
             if (std::abs(golden[i][j] - dA[i][j]) >= eps && std::abs((golden[i][j] - dA[i][j]) / golden[i][j]) >= eps) {
@@ -240,6 +246,7 @@ bool test_case5(std::mt19937 &gen, std::uniform_real_distribution<float> &dis) {
         for (int k = 0; k < 32; ++k) {
             for (int l = 0; l < 4; ++l) {
                 if (std::abs(golden[i][k][l] - dB[i][k][l]) >= eps && std::abs((golden[i][k][l] - dB[i][k][l]) / golden[i][k][l]) >= eps) {
+                printf("error: %lf ", std::abs(golden[i][k][l] - dB[i][k][l]));
                     std::cout << "Wrong answer\n";
                     return false;
                 }
@@ -307,6 +314,7 @@ bool test_case6(std::mt19937 &gen, std::uniform_real_distribution<float> &dis) {
             for (int h = 0; h < 7; ++h) {
                 for (int w = 0; w < 7; ++w) {
                     if (std::abs(golden[n][k][h][w] - dB[n][k][h][w]) >= eps && std::abs((golden[n][k][h][w] - dB[n][k][h][w]) / golden[n][k][h][w]) >= eps) {
+                        printf("error: %lf", std::abs(golden[n][k][h][w] - dB[n][k][h][w]));
                         std::cout << "Wrong answer\n";
                         return false;
                     }
@@ -471,7 +479,7 @@ int main() {
     std::random_device rd;  // get random seed
     std::mt19937 gen(rd()); // standard
     std::uniform_real_distribution<float> dis(-10, 10);
-    std::cout << "Random distribution ready\n";
+   std::cout << "Random distribution ready\n";
     int num_pass = 0;
     float score[] = {0, 2.25, 4.5, 6.75, 9, 10.5, 12, 12.75, 13.5, 14.25, 15};
     // cases

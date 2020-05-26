@@ -138,6 +138,9 @@ void IRVisitor::visit(Ref<const Var> op) {
         }
         else{   // binary Expr like i+j or k+2 or 2*m+1
             needIf[ti].push_back(std::make_pair(op->args[i], op->shape[i]));
+            // modified by hzw
+            (op->args[i]).visit_expr(this);
+            // end of modified
         }
 
     }
@@ -157,7 +160,12 @@ void IRVisitor::visit(Ref<const Dom> op) {
 
 
 void IRVisitor::visit(Ref<const Index> op) {
-    (op->dom).visit_expr(this);
+    //modified by hzw
+    if(!enterR && 
+            find(left_indexes.begin(), left_indexes.end(), op->name) == left_indexes.end())
+        left_indexes.push_back(op->name);
+
+    //end of modify
     return;
 }
 
