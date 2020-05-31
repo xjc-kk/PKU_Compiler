@@ -1,4 +1,5 @@
 #include "MyMutator.h"
+#include <string>
 
 namespace Boost {
 
@@ -31,17 +32,18 @@ Expr MyMutator::visit(Ref<const Unary> op) {
     assert(false);
 }
 
+ const double eps = 1e-5;
 bool iszero(const Expr& x)
 {
-    auto p = x.as<IntImm>();
-    if (p != nullptr && p->value() == 0)
+    auto p = x.as<FloatImm>();
+    if (p != nullptr && p->value() < eps && p->value() > -eps)
         return true;
     return false;
 }
 bool isone(const Expr& x)
 {
-    auto p = x.as<IntImm>();
-    if (p != nullptr && p->value() == 1)
+    auto p = x.as<FloatImm>();
+    if (p != nullptr && p->value() - 1.0 < eps && p->value() - 1.0 > -eps)
         return true;
     return false;
 }
@@ -78,11 +80,13 @@ Expr MyMutator::visit(Ref<const Binary> op) {
 Expr MyMutator::visit(Ref<const Var> op) {
     if (op->name.compare(grad) == 0)
     {
+        cnt--;
+        if (cnt!=0) return 0.0;
         dx = Var::make(op->type(), "d"+op->name, op->args, op->shape);
-        return 1;
+        return 1.0;
     }
     else
-        return 0;
+        return 0.0;
 }
 
 // end of file--------

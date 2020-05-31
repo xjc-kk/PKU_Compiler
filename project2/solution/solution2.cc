@@ -21,10 +21,6 @@ int main()
 		sprintf(oname, "./kernels/grad_case%d.cc", i);
 		FILE* fin  = fopen(iname, "r");
 		if (fin == nullptr) continue;
-    //    if (i == 6) continue;
-      //  if (i == 8) continue;
-      //  if (i == 10) continue;
-		// FILE* fout = fopen(oname, "w");
 		std::cout<<"process :" << iname<<std::endl;
 		// part1
 		parse(fin, js);

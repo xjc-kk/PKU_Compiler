@@ -38,12 +38,19 @@ void genStmt(vector<Expr> s){
     s[0].visit_expr(&visitor);
 
     // generate claim of tmp
-    if(tmpVarName == "" || tmpVarName != s[0].as<Var>()->name){ // need claim of a new tmp
+  //  if(tmpVarName == "" || tmpVarName != s[0].as<Var>()->name)
+    { // need claim of a new tmp
         tmpNum++;
         mutator.stmtNum = tmpNum;
-        tmp = mutator.mutate(s[0]);
+     //   tmp = mutator.mutate(s[0]);
         tmpVarName = s[0].as<Var>()->name;
+        tmp = Var::make(dataType, "tmp"+tmpVarName+to_string(tmpNum), 
+                s[0].as<Var>()->args, 
+                s[0].as<Var>()->shape);
         main_stmt.push_back(Move::make(tmp, Expr(), MoveType::MemToMem));   // claim stmt
+
+        puts("debug");
+        std::cout<<IRPrinter().print(tmp);
     }
 
     // visit each src term
@@ -66,8 +73,9 @@ void genStmt(vector<Expr> s){
     }
 //  vec.push_back(Var::make(data_type, "d"+vs[0].name, vs[0].args, vs[0].shape))
     // set tmp to 0
-    { //modified by hzw
-        std::vector<Expr> index;
+    //
+    //
+    std::vector<Expr> index;//modified by hzw
         Stmt stmt;
         auto ptr = tmp.as<Var>();
         int dim = ptr->shape.size();
@@ -80,13 +88,11 @@ void genStmt(vector<Expr> s){
             Expr ind = Index::make(index_type, idx_name, dom, IndexType::Spatial);
             index.push_back(ind);
         }
-        auto var = Var::make(dataType, ptr->name, index, ptr->shape);
-        if(dataType == Type::int_scalar(32))
-            stmt = Move::make(var, IntImm::make(dataType, 0), MoveType::MemToMem);
-        else
-            stmt = Move::make(var, FloatImm::make(dataType, 0), MoveType::MemToMem);
+        auto dst = Var::make(dataType, ptr->name, index, ptr->shape);
+        auto src = Var::make(dataType, s[0].as<Var>()->name, index, ptr->shape); 
+        stmt = Move::make(dst, src, MoveType::MemToMem);
         main_stmt.push_back(LoopNest::make(index, {stmt}));
-    }
+    
 
 
 
@@ -117,13 +123,15 @@ void genStmt(vector<Expr> s){
     // generate main loop part
     if(!left_index.empty()){
         main_stmt.push_back(LoopNest::make(left_index, termStmts));
-        main_stmt.push_back(LoopNest::make(left_index, {Move::make(s[0], tmp, MoveType::MemToMem)}));
+        main_stmt.push_back(LoopNest::make(index, {Move::make(src, dst, MoveType::MemToMem)})); // modified by hzw
     }
+    /*
     else{
+        assert(false);
         for(auto st: termStmts)
             main_stmt.push_back(st);
         main_stmt.push_back(Move::make(s[0], tmp, MoveType::MemToMem));
-    }
+    }*/
  
 }
 

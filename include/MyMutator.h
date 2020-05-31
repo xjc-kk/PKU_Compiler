@@ -35,10 +35,11 @@ namespace Internal {
 class MyMutator:public IRMutator {
 private:
     std::string grad;
-    Expr dx;
+
 public:
+    Expr dx;
+    int cnt;
     void set_grad(const std::string& s) { grad = s;}
-    Expr get_dx() const { return dx;}
 
     Expr mutate(const Expr&);
     Stmt mutate(const Stmt&);

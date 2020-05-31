@@ -37,7 +37,7 @@ void MyPrinter::visit(Ref<const UIntImm> op) {
 
 
 void MyPrinter::visit(Ref<const FloatImm> op) {
-    oss << op->value();
+    oss << op->value() << ".0";
 }
 
 
