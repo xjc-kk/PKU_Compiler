@@ -1,4 +1,5 @@
 #include "MyMutator.h"
+#include <cassert>
 #include <string>
 
 namespace Boost {
