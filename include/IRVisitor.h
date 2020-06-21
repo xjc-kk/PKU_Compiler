@@ -66,6 +66,7 @@ class IRVisitor {
    std::vector<std::string> left_indexes; // indexes of leftVar
    bool enterR; // whether comes to righthand of "="
    int ti; // indexNo. of terms
+   bool needRep; // if exist complicate expr in left indexes
 
  private:
 };

@@ -141,6 +141,9 @@ void IRVisitor::visit(Ref<const Var> op) {
             // modified by hzw
             (op->args[i]).visit_expr(this);
             // end of modified
+
+            if(!enterR)
+                needRep = true;
         }
 
     }

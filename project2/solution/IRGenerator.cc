@@ -19,6 +19,7 @@ std::vector<Expr> left_index;
 vector<Stmt> main_stmt;
 int tmpNum;
 Expr tmp;
+Expr tmp2;
 std::string tmpVarName;
 
 void genStmt(vector<Expr> s){
@@ -35,23 +36,47 @@ void genStmt(vector<Expr> s){
 
     // visit dst var
     visitor.enterR = false;
+    visitor.needRep = false;
     s[0].visit_expr(&visitor);
 
     // generate claim of tmp
   //  if(tmpVarName == "" || tmpVarName != s[0].as<Var>()->name)
-    { // need claim of a new tmp
-        tmpNum++;
-        mutator.stmtNum = tmpNum;
+     // need claim of a new tmp
+    tmpNum++;
+    mutator.stmtNum = tmpNum;
      //   tmp = mutator.mutate(s[0]);
-        tmpVarName = s[0].as<Var>()->name;
-        tmp = Var::make(dataType, "tmp"+tmpVarName+to_string(tmpNum), 
+    tmpVarName = s[0].as<Var>()->name;
+    tmp = Var::make(dataType, "tmp"+tmpVarName+to_string(tmpNum), 
                 s[0].as<Var>()->args, 
                 s[0].as<Var>()->shape);
-        main_stmt.push_back(Move::make(tmp, Expr(), MoveType::MemToMem));   // claim stmt
+    main_stmt.push_back(Move::make(tmp, Expr(), MoveType::MemToMem));   // claim stmt
 
-        puts("debug");
-        std::cout<<IRPrinter().print(tmp);
+    // generate temp indexes to replace complicate ones
+    bool needRep = visitor.needRep;
+    std::vector<Stmt> tmpEqu;
+    if(needRep){
+        std::vector<Expr> index;
+            
+        auto ptr = s[0].as<Var>();
+        int dim = ptr->shape.size();
+
+        for (int i=0;i<dim;i++)
+        {
+            string idx_name = "u";
+            idx_name[0] += i;
+            Expr dom = Dom::make(index_type, 0, int(ptr->shape[i]));//tmp.args[i];
+            Expr ind = Index::make(index_type, idx_name, dom, IndexType::Spatial);
+            index.push_back(ind);
+            tmpEqu.push_back(Move::make(Var::make(index_type, idx_name, {}, {1}), Expr(), MoveType::MemToMem));
+            tmpEqu.push_back(Move::make(Var::make(index_type, idx_name, {}, {1}), ptr->args[i], MoveType::MemToMem));
+        }
+
+        tmp2 = Var::make(dataType, "tmp"+tmpVarName+to_string(tmpNum), index, ptr->shape);
     }
+
+    puts("debug");
+    std::cout<<IRPrinter().print(tmp);
+    
 
     // visit each src term
     visitor.enterR = true;
@@ -107,17 +132,24 @@ void genStmt(vector<Expr> s){
             Expr index_e = Index::make(index_type, ind, index_dom, IndexType::Reduce);
             termIndexes.push_back(index_e);
         }
-        Stmt ifStmt = Move::make(tmp, Binary::make(dataType, BinaryOpType::Add, tmp, s[i]), MoveType::MemToMem);
+        Stmt ifStmt;
+        if(needRep)
+            ifStmt = Move::make(tmp2, Binary::make(dataType, BinaryOpType::Add, tmp, s[i]), MoveType::MemToMem);
+        else
+            ifStmt = Move::make(tmp, Binary::make(dataType, BinaryOpType::Add, tmp, s[i]), MoveType::MemToMem);
         for(auto itr : visitor.needIf[i]){
             Expr cond = Binary::make(index_type, BinaryOpType::And, 
                                 Compare::make(index_type, CompareOpType::LT, itr.first, IntImm::make(index_type, itr.second)),
                                 Compare::make(index_type, CompareOpType::GE, itr.first, IntImm::make(index_type, 0)));
             ifStmt = IfThenElse::make(cond, ifStmt, {});
         }
+        tmpEqu.push_back(ifStmt);
         if(!termIndexes.empty())
-            termStmts.push_back(LoopNest::make(termIndexes, {ifStmt}));
-        else
-            termStmts.push_back(ifStmt);
+            termStmts.push_back(LoopNest::make(termIndexes, tmpEqu));
+        else{
+            for(int i = 0; i < tmpEqu.size(); ++i)
+                termStmts.push_back(tmpEqu[i]);
+        }
     }
 
     // generate main loop part
